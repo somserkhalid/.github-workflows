@@ -1,0 +1,78 @@
+import os
+import urllib.request
+import json
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+from datetime import datetime
+
+# API URL for Bay of Bengal Weather Data
+api_url = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/bay%20of%20bengal?unitGroup=us&include=hours&key=PLVLHWM4STHA6SVPVK5S378MK&contentType=json"
+
+try:
+    # Fetch API data
+    ResultBytes = urllib.request.urlopen(api_url)
+    data = json.loads(ResultBytes.read().decode())
+    all_images = []
+
+    # Loop over days in forecast
+    for day in data['days']:
+        wind_data = day['hours']
+        date = day['datetime']
+        date_str = datetime.strptime(date, "%Y-%m-%d").strftime("%B %d, %Y")
+
+        # Prepare a plot for specific hours of the day
+        for hour in wind_data:
+            time_str = hour['datetime']
+            if time_str in ['00:00:00', '06:00:00', '12:00:00', '18:00:00']:  # Only for 12 am, 6 am, 12 pm, 6 pm
+                wind_speed = hour.get('windspeed', 0)  # Wind speed in knots
+                wind_dir = hour.get('winddir', 0)  # Wind direction in degrees
+                time = datetime.strptime(hour['datetime'], "%H:%M:%S").strftime("%I %p")  # AM/PM format
+
+                # Convert direction to radians (for polar plot)
+                wind_dir_rad = np.deg2rad(wind_dir)
+
+                # Create the polar plot
+                fig = plt.figure(figsize=(8, 8))
+                ax = fig.add_subplot(111, polar=True)
+                ax.set_theta_direction(-1)  # Counter-clockwise direction
+                ax.set_theta_offset(np.pi / 2)  # North at the top
+
+                # Plot the wind direction and speed as a bar
+                ax.bar(wind_dir_rad, wind_speed, width=0.3, color='b', alpha=0.5, label=f"{wind_speed} knots")
+
+                # Set tick labels for directions
+                ax.set_xticks(np.deg2rad([0, 45, 90, 135, 180, 225, 270, 315]))
+                ax.set_xticklabels(['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'])
+
+                # Add title and watermark centered on the plot
+                plt.title(f"Wind Pattern: {date_str} {time}")
+
+                # Add "BWOT" watermark at the center
+                plt.text(0.5, 0.5, 'BWOT', fontsize=50, color='gray', alpha=0.3,
+                         ha='center', va='center', transform=ax.transAxes, rotation=30)
+
+                # Add the logo to the plot
+                logo = plt.imread("bwot.png")
+                ax.imshow(logo, aspect='auto', extent=(0.75, 1, 0.75, 1), zorder=10)  # Adjust position as needed
+
+                # Save each frame as an image
+                image_path = f"frame_{date}_{time_str.replace(':', '')}.png"
+                plt.savefig(image_path)
+                plt.close(fig)
+                all_images.append(image_path)
+
+    # Create GIF animation using Pillow
+    frames = [Image.open(filename) for filename in all_images]
+    frames[0].save('wind_pattern_animation.gif', format='GIF', append_images=frames[1:], save_all=True, duration=3000, loop=0)
+
+    # Cleanup temporary images
+    for filename in all_images:
+        os.remove(filename)
+
+    print("Animation created: wind_pattern_animation.gif")
+
+except urllib.error.HTTPError as e:
+    print(f"HTTP Error: {e.code} - {e.read().decode()}")
+except urllib.error.URLError as e:
+    print(f"URL Error: {e.reason}")

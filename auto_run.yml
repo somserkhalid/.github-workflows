@@ -1,35 +1,31 @@
-name: Generate Weather Animation
-
-on:
-  schedule:
-    - cron: '0 * * * *'  # Runs every hour
-  workflow_dispatch:  # Allows manual trigger
-
 jobs:
-  build:
+  create_gif:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    - name: Run script
-      run: python path/to/your_script.py
+      - name: Run script
+        run: python bay_of_bengal_weather.py
 
-    - name: Commit and push images
-      run: |
-        git config --local user.name "Khalid Hossain"
-        git config --local user.email "khalidhossainagplus@gmail.com"
-        git add .
-        git commit -m "Update weather animation"
-        git push
+      - name: Configure Git
+        run: |
+          git config --local user.name "Khalid Hossain"
+          git config --local user.email "khalidhossainagplus@gmail.com"
+
+      - name: Commit GIF
+        run: |
+          git add wind_pattern_animation.gif
+          git commit -m "Update wind pattern animation" || echo "No changes to commit"
+
+      - name: Push changes
+        run: git push

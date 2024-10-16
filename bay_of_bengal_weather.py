@@ -52,6 +52,9 @@ try:
                     # Add "BWOT" watermark at the center
                     plt.text(0.5, 0.5, 'BWOT', fontsize=50, color='gray', alpha=0.3,
                              ha='center', va='center', transform=ax.transAxes)
+                    current_time = datetime.now().strftime("%B %d, %Y %I:%M %p")  # Format as "Month Day, Year HH:MM AM/PM"
+                    plt.text(0.5, 0.95, f"Updated: {current_time}", fontsize=12, color='black', ha='center', va='top', transform=ax.transAxes)
+
 
                     # Add logo in the right corner
                     logo = mpimg.imread('bwot.png')  # Ensure the logo is in the same directory

@@ -1,0 +1,31 @@
+jobs:
+  create_gif:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run script
+        run: python bay_of_bengal_weather.py
+
+      - name: Configure Git
+        run: |
+          git config --local user.name "Khalid Hossain"
+          git config --local user.email "khalidhossainagplus@gmail.com"
+
+      - name: Commit GIF
+        run: |
+          git add wind_pattern_animation.gif
+          git commit -m "Update wind pattern animation" || echo "No changes to commit"
+
+      - name: Push changes
+        run: git push
